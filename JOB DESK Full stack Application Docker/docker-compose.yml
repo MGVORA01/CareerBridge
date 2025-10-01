@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  jobdeskmysql:
+    image: mysql:latest
+    container_name: jobdeskmysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: jobdesk
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: jobdesk
+      MYSQL_PASSWORD: jobdesk
+    ports:
+      - "3307:3306"   # host:container
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - jobdesk-network
+
+  jobdesk-backend:
+    build: ./Spring-Boot-REST-Backend
+    container_name: jobdesk-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://jobdeskmysql:3306/jobdesk
+      SPRING_DATASOURCE_USERNAME: jobdesk
+      SPRING_DATASOURCE_PASSWORD: jobdesk
+    depends_on:
+      - jobdeskmysql
+    networks:
+      - jobdesk-network
+
+  jobdesk-frontend:
+    build: ./React-UI-with-CRUD-master-Frontend
+    container_name: jobdesk-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - jobdesk-backend
+    networks:
+      - jobdesk-network
+
+networks:
+  jobdesk-network:
+
+volumes:
+  db_data:
